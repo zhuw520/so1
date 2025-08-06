@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DARKSIDE</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .newspaper {
+            width: 100%;
+            max-width: 1200px;
+            padding: 30px;
+            background-color: white;
+            box-shadow: 0 0 25px rgba(0, 0, 255, 0.3), 
+                        0 0 50px rgba(0, 255, 255, 0.2),
+                        0 0 75px rgba(255, 0, 255, 0.1);
+            border: 3px solid gold;
+            border-radius: 10px;
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        .version-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 0.8em;
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 15px;
+            z-index: 100;
+        }
+        
+        .title {
+            font-size: clamp(1.5em, 5vw, 2.5em);
+            margin: 0 0 30px 0;
+            text-align: center;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: rainbow 5s ease infinite;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* 电脑版样式 - 宽大固定布局 */
+        .image-row.desktop {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        /* 手机版样式 - 横向滑动 */
+        .image-row.mobile {
+            display: flex;
+            margin: 20px 0;
+            gap: 15px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 15px;
+        }
+        
+        .image-container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 3px dashed #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 1/1;
+            box-sizing: border-box;
+        }
+        
+        /* 电脑版图片容器 */
+        .image-row.desktop .image-container {
+            min-height: 350px;
+            padding: 15px;
+        }
+        
+        /* 手机版图片容器 */
+        .image-row.mobile .image-container {
+            flex: 0 0 85%;
+            scroll-snap-align: start;
+            min-height: 250px;
+            padding: 10px;
+        }
+        
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 5px;
+            display: block;
+        }
+        
+        .placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: rainbow 5s ease infinite;
+            font-style: italic;
+            font-size: clamp(0.8em, 3vw, 1.2em);
+        }
+        
+        .divider {
+            border-top: 3px dashed #ccc;
+            margin: 30px 0;
+        }
+        
+        .content-text {
+            margin: 25px 0;
+            line-height: 1.6;
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: rainbow 5s ease infinite;
+            font-size: clamp(1em, 4vw, 1.2em);
+        }
+        
+        .video-container {
+            margin: 35px 0;
+            text-align: center;
+        }
+        
+        video {
+            max-width: 100%;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .watermark {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            font-size: clamp(0.6em, 2vw, 0.8em);
+            opacity: 0.7;
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: rainbow 5s ease infinite;
+        }
+        
+        /* 音乐控制球样式 */
+        .music-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            animation: spin 4s linear infinite;
+        }
+        
+        .music-control:hover {
+            transform: scale(1.1);
+        }
+        
+        .music-control::before {
+            content: "♫";
+            font-size: 24px;
+            color: rgba(0, 0, 0, 0.8);
+        }
+        
+        .music-control.playing {
+            background: rgba(0, 255, 255, 0.7);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 音乐控制球 -->
+    <div class="music-control" id="musicControl"></div>
+    
+    <!-- 隐藏的音频元素 -->
+    <audio id="bgMusic" loop>
+        <source src="a0.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div class="newspaper">
+        <div class="version-indicator" id="versionIndicator"></div>
+        <h1 class="title">AG彩色hz报</h1>
+        
+        <!-- 第一组图片 - 本地图片 -->
+        <div class="image-row" id="imageRow1">
+            <div class="image-container">
+                <img src="a1.jpg" alt="" onload="this.nextElementSibling.style.display='none'" onerror="this.nextElementSibling.style.display='flex'">
+                <div class="placeholder">DARKSIDE待更新</div>
+            </div>
+            <div class="image-container">
+                <img src="a2.jpg" alt="" onload="this.nextElementSibling.style.display='none'" onerror="this.nextElementSibling.style.display='flex'">
+                <div class="placeholder">DARKSIDE待更新</div>
+            </div>
+            <div class="image-container">
+                <img src="a3.jpg" alt="" onload="this.nextElementSibling.style.display='none'" onerror="this.nextElementSibling.style.display='flex'">
+                <div class="placeholder">DARKSIDE待更新</div>
+            </div>
+        </div>
+        
+        <!-- 第一段文字开始 -->
+        <div class="content-text">
+            啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊 我刚才被沙雕追杀 大家好 好人就是我 我就是～额哈哈哈哈哈哈哈 没了 走吧
+            
+        </div>
+        <!-- 第一段文字结束 -->
+        
+        <div class="divider"></div>
+        <div class="divider"></div>
+        <div class="divider"></div>
+        <div class="divider"></div>
+        
+        <!-- 第二组图片 - 网络图片 -->
+        <div class="image-row" id="imageRow2">
+            <div class="image-container">
+                <img src="https://b0.bdstatic.com/ugc/bgkvKRvokca0tJRRXPYzMA3f7365a00fb6282bd1a222dbf237f41c.gif" alt="" onload="this.nextElementSibling.style.display='none'" onerror="this.nextElementSibling.style.display='flex'">
+                <div class="placeholder">DARKSIDE待更新</div>
+            </div>
+            <div class="image-container">
+                <img src="https://pic.rmb.bdstatic.com/bjh/250708/dump/c4015f1930faf3209f829789ab044da4.gif" alt="" onload="this.nextElementSibling.style.display='none'" onerror="this.nextElementSibling.style.display='flex'">
+                <div class="placeholder">DARKSIDE待更新</div>
+            </div>
+            <div class="image-container">
+                <img src="https://q4.itc.cn/q_70/images03/20250420/12fcd1b7cd8346e6b956b7220a78f5fa.gif" alt="" onload="this.nextElementSibling.style.display='none'" onerror="this.nextElementSibling.style.display='flex'">
+                <div class="placeholder">DARKSIDE待更新</div>
+            </div>
+        </div>
+        
+        <!-- 第二段文字开始 -->
+        <div class="content-text">
+            这里是您要写的第二段文字内容。这段文字同样会显示彩色变幻效果。您可以继续在这里添加更多内容，丰富您的报纸版面。
+        </div>
+        <!-- 第二段文字结束 -->
+        
+        <!-- 第三段文字开始 -->
+        <div class="content-text">
+            啊，这是什么？😮失忆喷雾？喷一下💦。啊，这是什么？😮失忆喷雾？喷一下💦。啊，这是什么？😮失忆喷雾？喷一下💦。啊，这是什么？😮失忆喷雾？喷一下💦。啊，这是什么？😮失忆喷雾？喷一下💦。啊，这是什么？😮失忆喷雾？喷一下💦。啊，这是什么？😮失忆喷雾？喷一下💦。啊，这是什么？😮失忆喷雾？喷一下💦。
+                ════════ 别偷我源码哦
+        </div>
+        <!-- 第三段文字结束 -->
+        
+        <div class="video-container">
+            <video controls id="videoPlayer">
+                <source src="https://vd2.bdstatic.com/mda-rh4e9fud2ghgtqjb/576p/h264/1754388584543721020/mda-rh4e9fud2ghgtqjb.mp4?v_from_s=bdapp-resbox-nanjing" type="video/mp4">
+                您的浏览器不支持视频播放。
+            </video>
+        </div>
+        
+        <div class="watermark">©2025zhuchuangzuo</div>
+    </div>
+
+    <script>
+        // 检测设备类型并应用相应样式
+        function detectDevice() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const versionIndicator = document.getElementById('versionIndicator');
+            const imageRow1 = document.getElementById('imageRow1');
+            const imageRow2 = document.getElementById('imageRow2');
+            
+            if (isMobile) {
+                versionIndicator.textContent = '手机版';
+                imageRow1.classList.add('mobile');
+                imageRow1.classList.remove('desktop');
+                imageRow2.classList.add('mobile');
+                imageRow2.classList.remove('desktop');
+            } else {
+                versionIndicator.textContent = '电脑版';
+                imageRow1.classList.add('desktop');
+                imageRow1.classList.remove('mobile');
+                imageRow2.classList.add('desktop');
+                imageRow2.classList.remove('mobile');
+            }
+        }
+        
+        // 自动检测图片并隐藏占位符
+        document.addEventListener('DOMContentLoaded', function() {
+            detectDevice();
+            
+            // 移除alt文本避免显示破损图标
+            document.querySelectorAll('img').forEach(img => {
+                img.alt = '';
+            });
+            
+            // 10秒后显示作者信息弹窗
+            setTimeout(() => {
+                alert('作者：相拥与你/zhu');
+            }, 10000);
+            
+            // 检测本地图片
+            checkImage('a1.jpg', document.querySelectorAll('#imageRow1 .placeholder')[0]);
+            checkImage('a2.jpg', document.querySelectorAll('#imageRow1 .placeholder')[1]);
+            checkImage('a3.jpg', document.querySelectorAll('#imageRow1 .placeholder')[2]);
+            
+            // 检测网络图片
+            checkImage('https://pics0.baidu.com/feed/9213b07eca806538edcd4350e58ee254ad348236.jpeg@f_auto,h_323,s_0,w_339?token=8f8182ed249ab8bca155f6d7a9ca6261', 
+                     document.querySelectorAll('#imageRow2 .placeholder')[0]);
+            checkImage('https://pic.rmb.bdstatic.com/bjh/250708/dump/c4015f1930faf3209f829789ab044da4.gif',
+                     document.querySelectorAll('#imageRow2 .placeholder')[1]);
+            checkImage('https://q4.itc.cn/q_70/images03/20250420/12fcd1b7cd8346e6b956b7220a78f5fa.gif',
+                     document.querySelectorAll('#imageRow2 .placeholder')[2]);
+            
+            function checkImage(src, placeholder) {
+                const img = new Image();
+                img.onload = function() {
+                    placeholder.style.display = 'none';
+                };
+                img.onerror = function() {
+                    placeholder.style.display = 'flex';
+                };
+                img.src = src;
+            }
+        });
+        
+        // 窗口大小改变时重新检测设备
+        window.addEventListener('resize', function() {
+            detectDevice();
+        });
+        
+        // 音乐控制功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const musicControl = document.getElementById('musicControl');
+            const bgMusic = document.getElementById('bgMusic');
+            const videoPlayer = document.getElementById('videoPlayer');
+            
+            // 自动播放音乐的技巧
+            function attemptAutoplay() {
+                // 尝试直接播放
+                const playPromise = bgMusic.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        // 自动播放成功
+                        musicControl.classList.add('playing');
+                    })
+                    .catch(error => {
+                        // 自动播放失败，尝试用户交互后播放
+                        document.body.addEventListener('click', function() {
+                            bgMusic.play().then(_ => {
+                                musicControl.classList.add('playing');
+                            });
+                        }, { once: true });
+                    });
+                }
+            }
+            
+            // 使用媒体会话API增加自动播放成功率
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: '背景音乐',
+                    artist: 'AG彩色hz报'
+                });
+            }
+            
+            // 页面加载后尝试自动播放
+            setTimeout(attemptAutoplay, 500);
+            
+            // 音乐控制球点击事件
+            musicControl.addEventListener('click', function() {
+                if (bgMusic.paused) {
+                    bgMusic.play();
+                    musicControl.classList.add('playing');
+                } else {
+                    bgMusic.pause();
+                    musicControl.classList.remove('playing');
+                }
+            });
+            
+            // 视频播放时暂停音乐
+            videoPlayer.addEventListener('play', function() {
+                bgMusic.pause();
+                musicControl.classList.remove('playing');
+            });
+            
+            // 视频暂停时恢复音乐
+            videoPlayer.addEventListener('pause', function() {
+                if (!bgMusic.paused) {
+                    bgMusic.play().catch(e => console.log('自动播放失败:', e));
+                    musicControl.classList.add('playing');
+                }
+            });
+            
+            // 优化音频加载 - 使用流式加载
+            bgMusic.preload = 'auto';
+            bgMusic.load();
+            
+            // 监听音频可以播放事件
+            bgMusic.addEventListener('canplaythrough', function() {
+                // 音频可以完整播放时尝试自动播放
+                attemptAutoplay();
+            });
+            
+            // 监听音频缓冲事件
+            bgMusic.addEventListener('progress', function() {
+                // 只要有缓冲数据就尝试播放
+                if (bgMusic.paused && bgMusic.buffered.length > 0) {
+                    attemptAutoplay();
+                }
+            });
+            
+            // 监听音频错误
+            bgMusic.addEventListener('error', function() {
+                console.error('音频加载错误:', bgMusic.error);
+            });
+        });
+    </script>
+</body>
+</html>
